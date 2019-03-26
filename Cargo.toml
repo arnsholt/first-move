@@ -1,9 +1,12 @@
 [package]
-name = "first-move"
+name = "first_move"
 version = "0.1.0"
 authors = ["Arne Skjærholt <arnsholt@gmail.com>"]
+build = "build.rs"
+edition = "2018"
 
 [dependencies]
 clap = "2.32"
 pgn-reader = "0.14"
 shakmaty = "0.14"
+maud = "*"

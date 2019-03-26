@@ -1,16 +1,23 @@
 #![deny(clippy::all, clippy::pedantic)]
+#![feature(proc_macro_hygiene)]
 
 // External dependencies:
 extern crate clap;
+extern crate maud;
 extern crate pgn_reader;
 extern crate shakmaty;
 
 use clap::{App, Arg};
+use maud::html;
 use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
 use shakmaty::{Chess, Color, Move, Position, Role, Setup, Square};
 use shakmaty::fen::Fen;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator; // Not used directly, but enables .from_iter().
+
+use first_move;
+use first_move::{chessground,style};
+//include!(concat!(env!("OUT_DIR"), "/lib.rs"));
 
 struct Search<'a> {
     input: &'a str,
@@ -251,6 +258,23 @@ impl Visitor for PgnSearcher {
 }
 
 fn main() {
+    let doc = html! {
+        html {
+            head {
+                script { (chessground()) }
+            }
+            body {
+                div.blue.merida {
+                    div."cg-board-wrap"#board;
+                }
+            }
+        }
+    };
+    println!("{}", doc.into_string());
+    return;
+
+
+
     let matches = App::new("first-move")
         .arg(Arg::with_name("input")
              .required(true)
