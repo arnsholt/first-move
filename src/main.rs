@@ -141,7 +141,12 @@ impl PgnSearcher {
                 },
                 Move::Castle { king, rook } => {
                     self.count(*king, Some(*rook));
-                    self.count(*rook, Some(rook.flip_diagonal()));
+                    /* XXX: We need to chain the two flips here, since
+                     * .flip_diagonal() is a noop for squares on the a1-h8
+                     * diagonal, causing long castle for white and short
+                     * castle for black to be conflated with un-moved rook.
+                     */
+                    self.count(*rook, Some(rook.flip_horizontal().flip_vertical()));
                 },
                 Move::Put { .. } => panic!("Can't handle puts"),
             }
