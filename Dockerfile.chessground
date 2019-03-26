@@ -7,4 +7,4 @@ WORKDIR /chessground
 RUN npm install gulp-cli
 RUN ./node_modules/.bin/gulp dev
 
-CMD cat dist/chessground.js
+CMD cat dist/chessground.min.js
