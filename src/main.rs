@@ -10,8 +10,7 @@ use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
 use shakmaty::{Chess, Color, Move, Position, Role, Setup, Square};
 use shakmaty::fen::Fen;
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::iter::FromIterator;
+use std::iter::FromIterator; // Not used directly, but enables .from_iter().
 
 struct Search<'a> {
     input: &'a str,
@@ -28,7 +27,7 @@ impl<'a> Search<'a> {
         println!("Searching from:\n{:?}", target.board());
 
         let mut visitor = PgnSearcher::new(target);
-        let mut reader = BufferedReader::new(File::open(&self.input).expect("Error opening file"));
+        let mut reader = BufferedReader::new(::std::fs::File::open(&self.input).expect("Error opening file"));
         reader.read_all(&mut visitor).expect("Error while parsing file");
 
         visitor.counts.iter().for_each(|(k, v)| Self::output(visitor.target.board().color_at(*k).unwrap(), visitor.target.board().role_at(*k).unwrap(), *k, v));
