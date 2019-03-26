@@ -17,7 +17,6 @@ use std::iter::FromIterator; // Not used directly, but enables .from_iter().
 
 use first_move;
 use first_move::{chessground,style};
-//include!(concat!(env!("OUT_DIR"), "/lib.rs"));
 
 struct Search<'a> {
     input: &'a str,
@@ -262,6 +261,7 @@ fn main() {
         html {
             head {
                 script { (chessground()) }
+                style { (style()) }
             }
             body {
                 div.blue.merida {
