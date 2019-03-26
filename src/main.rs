@@ -43,6 +43,7 @@ impl<'a> Search<'a> {
         });
     }
 
+    #[allow(clippy::non_ascii_literal)]
     fn piece_char(color: Color, role: Role) -> &'a str {
         if color == Color::White {
             match role {
