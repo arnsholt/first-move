@@ -43,7 +43,7 @@ impl<'a> Search<'a> {
         println!("{}{}:", Self::piece_char(color, role), square);
         moves.iter().for_each(|(to_square, count)| {
             let to = if let Some(s) = to_square { s.to_string() }
-            else { "nowhere".to_string() };
+            else { "nowhere".into() };
             println!("    {}: {}", to, count);
         });
     }
@@ -107,9 +107,9 @@ impl PgnSearcher {
 
              , turn: true
              , move_no: 0
-             , white: "".to_string()
-             , black: "".to_string()
-             , date: "".to_string()
+             , white: "".into()
+             , black: "".into()
+             , date: "".into()
              }
     }
 
@@ -191,7 +191,7 @@ impl Visitor for PgnSearcher {
 
     fn header(&mut self, key: &[u8], value: RawHeader) {
         let key = ::std::str::from_utf8(key).unwrap();
-        let value = value.decode_utf8().unwrap().to_string();
+        let value = value.decode_utf8().unwrap().into();
 
         if key == "White" {
             self.white = value;
@@ -250,9 +250,9 @@ impl Visitor for PgnSearcher {
 
         self.turn = true;
         self.move_no = 0;
-        self.white = "".to_string();
-        self.black = "".to_string();
-        self.date = "".to_string();
+        self.white = "".into();
+        self.black = "".into();
+        self.date = "".into();
     }
 }
 
