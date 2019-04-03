@@ -56,7 +56,7 @@ impl<'a> Search<'a> {
                         /*"var shapes = [{orig: 'd5', dest: 'e4', brush: 'red'}, {orig: 'd4', brush: 'blue'}];"
                         "ground.setShapes(shapes);"*/
                     }
-                    table {
+                    table.stats {
                         @for (s, targets) in counts.iter() {
                             // TODO: When hovering an outer row highlight top n (3?) targets with arrows.
                             tr {
@@ -65,7 +65,7 @@ impl<'a> Search<'a> {
                                     (s)
                                 }
                                 td {
-                                    table {
+                                    table.counts {
                                         // TODO: Sort targets in descending order of frequency.
                                         @for (dest, count) in targets.iter() {
                                             tr {
