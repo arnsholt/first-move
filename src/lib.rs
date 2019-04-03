@@ -1,6 +1,17 @@
 include!(concat!(env!("OUT_DIR"), "/gen.rs"));
 
+fn urlenc<'a>(s: &'a str) -> String {
+    s.replace("#", "%23")
+     .replace("<", "%3C")
+     .replace(">", "%3E")
+     .replace("?", "%3F")
+     .replace("\n", "%0A")
+}
+
 pub fn chessground<'a>() -> &'a str { CHESSGROUND }
+/* TODO: Style tables so that it's easy to connect numbers to pieces.
+ * - Add borders between cells in outer table, and get text in "from" cell to align with top of cell
+ */
 pub fn style<'a>() -> String { format!(r#"
 /*
  * Chessground base css properties.
@@ -191,16 +202,16 @@ pub fn style<'a>() -> String { format!(r#"
   background-image: url('data:image/svg+xml,{bk}');
 }}
 "#,
-    board=BOARD,
-    wp=WP,
-    wb=WB,
-    wn=WN,
-    wr=WR,
-    wq=WQ,
-    wk=WK,
-    bp=BP,
-    bb=BB,
-    bn=BN,
-    br=BR,
-    bq=BQ,
-    bk=BK) }
+    board=urlenc(BOARD),
+    wp=urlenc(WP),
+    wb=urlenc(WB),
+    wn=urlenc(WN),
+    wr=urlenc(WR),
+    wq=urlenc(WQ),
+    wk=urlenc(WK),
+    bp=urlenc(BP),
+    bb=urlenc(BB),
+    bn=urlenc(BN),
+    br=urlenc(BR),
+    bq=urlenc(BQ),
+    bk=urlenc(BK)) }

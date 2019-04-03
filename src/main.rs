@@ -8,9 +8,9 @@ extern crate pgn_reader;
 extern crate shakmaty;
 
 use clap::{App, Arg};
-use maud::html;
+use maud::{html, DOCTYPE, PreEscaped};
 use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
-use shakmaty::{Chess, Color, Move, Position, Role, Setup, Square};
+use shakmaty::{Board, Chess, Color, Move, Position, Role, Setup, Square};
 use shakmaty::fen::Fen;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator; // Not used directly, but enables .from_iter().
@@ -27,25 +27,69 @@ impl<'a> Search<'a> {
         Search { input }
     }
 
-    fn run(&mut self, target: &str) {
-        let fen: Fen = target.parse().unwrap();
-        let target: Chess = fen.position().unwrap();
-        println!("Searching from:\n{:?}", target.board());
-
+    fn run(&mut self, target: Chess) {
         let mut visitor = PgnSearcher::new(target);
         let mut reader = BufferedReader::new(::std::fs::File::open(&self.input).expect("Error opening file"));
         reader.read_all(&mut visitor).expect("Error while parsing file");
 
-        visitor.counts.iter().for_each(|(k, v)| Self::output(visitor.target.board().color_at(*k).unwrap(), visitor.target.board().role_at(*k).unwrap(), *k, v));
+        Self::output_html(&visitor.counts, visitor.target.board());
     }
 
-    fn output(color: Color, role: Role, square: Square, moves: &HashMap<Option<Square>, u32>) {
-        println!("{}{}:", Self::piece_char(color, role), square);
-        moves.iter().for_each(|(to_square, count)| {
-            let to = if let Some(s) = to_square { s.to_string() }
-            else { "nowhere".into() };
-            println!("    {}: {}", to, count);
-        });
+    fn output_html(counts: &HashMap<Square, HashMap<Option<Square>, u32>>, board: &Board) {
+        let doc = html! {
+            (DOCTYPE)
+            html {
+                head {
+                    meta charset="UTF-8";
+                    script { (PreEscaped(chessground())) }
+                    style { (PreEscaped(style())) }
+                }
+                body {
+                    // TODO: Get board to not protrude into table (either add padding, or move
+                    // coordinates to inside of board.
+                    div.blue.merida {
+                        div."cg-board-wrap"#board {}
+                    }
+                    script {
+                        (format!("var ground = Chessground(document.getElementById('board'), {{fen: '{}', viewOnly: true}});",
+                            shakmaty::fen::board_fen(board)))
+                        /*"var shapes = [{orig: 'd5', dest: 'e4', brush: 'red'}, {orig: 'd4', brush: 'blue'}];"
+                        "ground.setShapes(shapes);"*/
+                    }
+                    table {
+                        @for (s, targets) in counts.iter() {
+                            // TODO: When hovering an outer row highlight top n (3?) targets with arrows.
+                            tr {
+                                td {
+                                    (Self::piece_char(board.color_at(*s).unwrap(), board.role_at(*s).unwrap()))
+                                    (s)
+                                }
+                                td {
+                                    table {
+                                        // TODO: Sort targets in descending order of frequency.
+                                        @for (dest, count) in targets.iter() {
+                                            tr {
+                                                td {
+                                                    @if let Some(d) = dest {
+                                                        @if d == s { "Captured" }
+                                                        @else { (d) }
+                                                    }
+                                                    @else {
+                                                        "Unmoved"
+                                                    }
+                                                }
+                                                td { (count) }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        println!("{}", doc.into_string());
     }
 
     #[allow(clippy::non_ascii_literal)]
@@ -257,24 +301,6 @@ impl Visitor for PgnSearcher {
 }
 
 fn main() {
-    let doc = html! {
-        html {
-            head {
-                script { (chessground()) }
-                style { (style()) }
-            }
-            body {
-                div.blue.merida {
-                    div."cg-board-wrap"#board;
-                }
-            }
-        }
-    };
-    println!("{}", doc.into_string());
-    return;
-
-
-
     let matches = App::new("first-move")
         .arg(Arg::with_name("input")
              .required(true)
@@ -283,6 +309,11 @@ fn main() {
              .required(true)
              .index(2))
         .get_matches();
+
     let mut search = Search::new(&matches.value_of("input").unwrap());
-    search.run(&matches.value_of("position").unwrap());
+    let fen: Fen = matches.value_of("position").unwrap().parse().unwrap();
+    let target: Chess = fen.position().unwrap();
+
+    search.run(target);
+
 }
