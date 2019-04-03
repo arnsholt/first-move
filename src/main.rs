@@ -45,9 +45,7 @@ impl<'a> Search<'a> {
                     style { (PreEscaped(style())) }
                 }
                 body {
-                    // TODO: Get board to not protrude into table (either add padding, or move
-                    // coordinates to inside of board.
-                    div.blue.merida {
+                    div.blue.merida#container {
                         div."cg-board-wrap"#board {}
                     }
                     script {

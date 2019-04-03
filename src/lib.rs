@@ -13,10 +13,12 @@ pub fn chessground<'a>() -> &'a str { CHESSGROUND }
  * - Add borders between cells in outer table, and get text in "from" cell to align with top of cell
  */
 pub fn style<'a>() -> String { format!(r#"
+#container {{ position: fixed; }}
 table.stats {{ border-collapse: collapse; }}
 table.stats td {{
     border: 1px solid black;
     vertical-align: top;
+    margin-left: 360px;
 }}
 table.counts td {{
     border-width: 0;
