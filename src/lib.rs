@@ -14,7 +14,12 @@ pub fn chessground<'a>() -> &'a str { CHESSGROUND }
  */
 pub fn style<'a>() -> String { format!(r#"
 #container {{ position: fixed; }}
-table.stats {{ border-collapse: collapse; }}
+.stats-container {{ margin-left: 360px; }}
+table.stats {{
+    border-collapse: collapse;
+    float: left;
+    margin: 2px;
+}}
 table.stats td {{
     border: 1px solid black;
     vertical-align: top;

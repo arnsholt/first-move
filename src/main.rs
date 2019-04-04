@@ -8,7 +8,7 @@ extern crate pgn_reader;
 extern crate shakmaty;
 
 use clap::{App, Arg};
-use maud::{html, DOCTYPE, PreEscaped};
+use maud::{html, DOCTYPE, Markup, PreEscaped};
 use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
 use shakmaty::{Board, Chess, Color, Move, Position, Role, Setup, Square};
 use shakmaty::fen::Fen;
@@ -36,6 +36,12 @@ impl<'a> Search<'a> {
     }
 
     fn output_html(counts: &HashMap<Square, HashMap<Option<Square>, u32>>, board: &Board) {
+        let mut entries: Vec<_> = counts.iter().collect();
+        /* The square ordering isn't optimal, but it works for now. Ideally, I'd like to use the
+         * square ordering for white, but for black we want back-to-front left-ro-right (which is
+         * not the reversed square ordering; that's back-to-front right-to-left). But that's
+         * annoying to implement, so this is fine for now. */
+        entries.sort_by_key(|e| e.0);
         let doc = html! {
             (DOCTYPE)
             html {
@@ -54,40 +60,67 @@ impl<'a> Search<'a> {
                         /*"var shapes = [{orig: 'd5', dest: 'e4', brush: 'red'}, {orig: 'd4', brush: 'blue'}];"
                         "ground.setShapes(shapes);"*/
                     }
-                    table.stats {
-                        @for (s, targets) in counts.iter() {
-                            // TODO: When hovering an outer row highlight top n (3?) targets with arrows.
-                            tr {
-                                td {
-                                    (Self::piece_char(board.color_at(*s).unwrap(), board.role_at(*s).unwrap()))
-                                    (s)
-                                }
-                                td {
-                                    table.counts {
-                                        // TODO: Sort targets in descending order of frequency.
-                                        @for (dest, count) in targets.iter() {
-                                            tr {
-                                                td {
-                                                    @if let Some(d) = dest {
-                                                        @if d == s { "Captured" }
-                                                        @else { (d) }
-                                                    }
-                                                    @else {
-                                                        "Unmoved"
-                                                    }
-                                                }
-                                                td { (count) }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    div."stats-container" {
+                        @let (white, black): (Vec<_>, Vec<_>) = entries.iter().partition(|(s, _)| board.color_at(**s).unwrap() == Color::White);
+                        @let (white_pawns, white_pieces): (Vec<_>, Vec<_>) = white.iter().partition(|(s, _)| board.role_at(**s).unwrap() == Role::Pawn);
+                        @let (black_pawns, black_pieces): (Vec<_>, Vec<_>) = black.iter().partition(|(s, _)| board.role_at(**s).unwrap() == Role::Pawn);
+                        (Self::stats_table(white_pawns, board))
+                        (Self::stats_table(white_pieces, board))
+                        (Self::stats_table(black_pawns, board))
+                        (Self::stats_table(black_pieces, board))
                     }
                 }
             }
         };
         println!("{}", doc.into_string());
+    }
+
+    fn sorted_targets(targets: &HashMap<Option<Square>, u32>) -> Vec<(&Option<Square>, &u32)> {
+        let mut sorted: Vec<_> = targets.iter().collect();
+        sorted.sort_by_key(|e| e.1);
+        sorted.reverse();
+        sorted
+    }
+
+    fn stats_table(pieces: Vec<(&Square, &HashMap<Option<Square>, u32>)>, board: &Board) -> Markup {
+        // TODO: When hovering an outer row highlight top n (3?) targets with arrows.
+        html! {
+            table.stats {
+                @for (s, targets) in pieces {
+                    @let sorted_targets = Self::sorted_targets(targets);
+                    tr {
+                        td {
+                            (Self::piece_char(board.color_at(*s).unwrap(), board.role_at(*s).unwrap()))
+                            (s)
+                        }
+                        td {
+                            (Self::count_table(&sorted_targets, s))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn count_table(targets: &Vec<(&Option<Square>, &u32)>, from: &Square) -> Markup {
+        html! {
+            table.counts {
+                @for (dest, count) in targets {
+                    tr {
+                        td {
+                            @if let Some(d) = dest {
+                                @if d == from { "Captured" }
+                                @else { (d) }
+                            }
+                            @else {
+                                "Unmoved"
+                            }
+                        }
+                        td { (count) }
+                    }
+                }
+            }
+        }
     }
 
     #[allow(clippy::non_ascii_literal)]
