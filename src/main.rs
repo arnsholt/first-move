@@ -16,7 +16,7 @@ use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator; // Not used directly, but enables .from_iter().
 
 use first_move;
-use first_move::{chessground,style};
+use first_move::{chessground, style, arrows};
 
 struct Search<'a> {
     input: &'a str,
@@ -57,8 +57,7 @@ impl<'a> Search<'a> {
                     script {
                         (format!("var ground = Chessground(document.getElementById('board'), {{fen: '{}', viewOnly: true}});",
                             shakmaty::fen::board_fen(board)))
-                        /*"var shapes = [{orig: 'd5', dest: 'e4', brush: 'red'}, {orig: 'd4', brush: 'blue'}];"
-                        "ground.setShapes(shapes);"*/
+                            (PreEscaped(arrows()))
                     }
                     div."stats-container" {
                         @let (white, black): (Vec<_>, Vec<_>) = entries.iter().partition(|(s, _)| board.color_at(**s).unwrap() == Color::White);
@@ -88,7 +87,8 @@ impl<'a> Search<'a> {
             table.stats {
                 @for (s, targets) in pieces {
                     @let sorted_targets = Self::sorted_targets(targets);
-                    tr {
+                    @let to = Self::jstargets(&sorted_targets);
+                    tr onmouseleave="clearArrows()" onmouseenter={"drawArrows(" (format!("'{}'", s)) "," (to) ")"} {
                         td {
                             (Self::piece_char(board.color_at(*s).unwrap(), board.role_at(*s).unwrap()))
                             (s)
@@ -100,6 +100,30 @@ impl<'a> Search<'a> {
                 }
             }
         }
+    }
+
+    fn jstargets(targets: &Vec<(&Option<Square>, &u32)>) -> String {
+        fn target_string(t: &Option<Square>) -> String {
+            if let Some(s) = t {
+                format!("'{}'", s)
+            }
+            else {
+                "null".to_string()
+            }
+        }
+
+        let mut to = "[".to_string();
+
+        let mut iter = targets.iter().take(3);
+        to.push_str(&target_string(iter.next().unwrap().0));
+
+        for (target, _) in iter {
+            to.push_str(",");
+            to.push_str(&target_string(target));
+        }
+        to.push_str("]");
+
+        to
     }
 
     fn count_table(targets: &Vec<(&Option<Square>, &u32)>, from: &Square) -> Markup {

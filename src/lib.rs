@@ -9,9 +9,8 @@ fn urlenc<'a>(s: &'a str) -> String {
 }
 
 pub fn chessground<'a>() -> &'a str { CHESSGROUND }
-/* TODO: Style tables so that it's easy to connect numbers to pieces.
- * - Add borders between cells in outer table, and get text in "from" cell to align with top of cell
- */
+pub fn arrows<'a>() -> &'a str { ARROWS }
+
 pub fn style<'a>() -> String { format!(r#"
 #container {{ position: fixed; }}
 .stats-container {{ margin-left: 360px; }}

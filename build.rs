@@ -22,6 +22,7 @@ fn main() {
     write_file(&mut f, "BR", "svg/bR.svg");
     write_file(&mut f, "BQ", "svg/bQ.svg");
     write_file(&mut f, "BK", "svg/bK.svg");
+    write_file(&mut f, "ARROWS", "arrows.js");
 }
 
 fn write(f: &mut File, name: &str, value: &str) {
